@@ -1,91 +1,121 @@
-var ColorHelper = (function () {
-    function ColorHelper() {
+var Rectangle = (function () {
+    function Rectangle(x, y, size) {
+        this.x = x;
+        this.y = y;
+        this.size = size;
     }
-    ColorHelper.getColorVector = function (c) {
-        return createVector(red(c), green(c), blue(c));
-    };
-    ColorHelper.rainbowColorBase = function () {
-        return [
-            color('red'),
-            color('orange'),
-            color('yellow'),
-            color('green'),
-            color(38, 58, 150),
-            color('indigo'),
-            color('violet')
-        ];
-    };
-    ColorHelper.getColorsArray = function (total, baseColorArray) {
-        var _this = this;
-        if (baseColorArray === void 0) { baseColorArray = null; }
-        if (baseColorArray == null) {
-            baseColorArray = ColorHelper.rainbowColorBase();
-        }
-        var rainbowColors = baseColorArray.map(function (x) { return _this.getColorVector(x); });
-        ;
-        var colours = new Array();
-        for (var i = 0; i < total; i++) {
-            var colorPosition = i / total;
-            var scaledColorPosition = colorPosition * (rainbowColors.length - 1);
-            var colorIndex = Math.floor(scaledColorPosition);
-            var colorPercentage = scaledColorPosition - colorIndex;
-            var nameColor = this.getColorByPercentage(rainbowColors[colorIndex], rainbowColors[colorIndex + 1], colorPercentage);
-            colours.push(color(nameColor.x, nameColor.y, nameColor.z));
-        }
-        return colours;
-    };
-    ColorHelper.getColorByPercentage = function (firstColor, secondColor, percentage) {
-        var firstColorCopy = firstColor.copy();
-        var secondColorCopy = secondColor.copy();
-        var deltaColor = secondColorCopy.sub(firstColorCopy);
-        var scaledDeltaColor = deltaColor.mult(percentage);
-        return firstColorCopy.add(scaledDeltaColor);
-    };
-    return ColorHelper;
+    return Rectangle;
 }());
-var Shapes = (function () {
-    function Shapes() {
+var HSLColor = (function () {
+    function HSLColor(h, s, l) {
+        this.h = h;
+        this.s = s;
+        this.l = l;
     }
-    Shapes.star = function (x, y, radius1, radius2, npoints) {
-        var angle = TWO_PI / npoints;
-        var halfAngle = angle / 2.0;
-        var points = new Array();
-        for (var a = 0; a < TWO_PI; a += angle) {
-            var sx = x + cos(a) * radius2;
-            var sy = y + sin(a) * radius2;
-            points.push(createVector(sx, sy));
-            sx = x + cos(a + halfAngle) * radius1;
-            sy = y + sin(a + halfAngle) * radius1;
-            points.push(createVector(sx, sy));
-        }
-        return points;
+    HSLColor.random = function (p) {
+        return new HSLColor(p.random(0, 100), p.random(40, 60), p.random(30, 70));
     };
-    return Shapes;
+    return HSLColor;
 }());
-var angle = 0;
-var squares = 10;
-var colors;
-function setup() {
-    createCanvas(windowWidth, windowHeight);
-    rectMode(CENTER);
-    colors = ColorHelper.getColorsArray(squares);
-}
-function draw() {
-    background(51);
-    translate((width / 2), (height / 2));
-    angle = angle + 0.01;
-    rotate(angle);
-    for (var i = 0; i < squares; i++) {
-        strokeWeight(2);
-        stroke(colors[i]);
-        noFill();
-        beginShape();
-        var points = Shapes.star(0, 0, 10 * i, 20 * i, 5);
-        for (var x = 0; x < points.length; x++) {
-            var v = points[x];
-            vertex(v.x, v.y);
+var generateRandomSquares = function (p, width, height, steps) {
+    var margin = p.random(150, 250);
+    var offsetRange = 30;
+    var rectangles = Array();
+    for (var x = margin; x < width - margin; x += steps) {
+        for (var y = margin; y < height - margin; y += steps) {
+            var size = p.random(20, 150);
+            var offset = p.random(-offsetRange, offsetRange);
+            rectangles.push(new Rectangle(x + offset, y + offset, size));
         }
-        endShape(CLOSE);
     }
+    return shuffle(rectangles);
+};
+var sketch = function (p) {
+    var sliderJitter;
+    var sliderSteps;
+    var sliderOpacity;
+    var sliderDepth;
+    var stepsValue = 85;
+    var previous;
+    var rectangles;
+    var color;
+    p.setup = function () {
+        p.rectMode(p.CENTER);
+        p.stroke(0);
+        p.strokeWeight(40);
+        p.colorMode(p.HSL, 100);
+        p.createCanvas(800, 800);
+        color = HSLColor.random(p);
+        sliderJitter = p.createSlider(0, 20, 7, 1);
+        sliderJitter.position(10, 10);
+        sliderJitter.style('width', '80px');
+        sliderSteps = p.createSlider(25, 100, stepsValue, 5);
+        sliderSteps.position(120, 10);
+        sliderSteps.style('width', '80px');
+        sliderOpacity = p.createSlider(0, 50, 17, 1);
+        sliderOpacity.position(230, 10);
+        sliderOpacity.style('width', '80px');
+        sliderDepth = p.createSlider(0, 1, 0.22, 0.01);
+        sliderDepth.position(340, 10);
+        sliderDepth.style('width', '80px');
+        rectangles = generateRandomSquares(p, p.width, p.height, stepsValue);
+    };
+    p.draw = function () {
+        var newSteps = Number(sliderSteps.value());
+        var jitter = Number(sliderJitter.value());
+        if (newSteps !== stepsValue) {
+            rectangles = generateRandomSquares(p, p.width, p.height, newSteps);
+            stepsValue = newSteps;
+        }
+        p.stroke(255, 80);
+        p.strokeWeight(4);
+        if (previous !== rectangles || jitter !== 0) {
+            p.clear();
+            p.background("#333");
+            rectangles.forEach(function (rect, index) {
+                drawRect(rect, jitter, (index / rectangles.length));
+            });
+            previous = rectangles;
+        }
+    };
+    p.keyPressed = function () {
+        console.log(p.key);
+        if (p.key === "i") {
+            var info = {
+                "jitter": sliderJitter.value(),
+                "steps": sliderSteps.value(),
+                "opacity": sliderOpacity.value(),
+                "depth": sliderDepth.value()
+            };
+            console.log(info);
+            return;
+        }
+        rectangles = generateRandomSquares(p, p.width, p.height, Number(sliderSteps.value()));
+        if (p.key === "r") {
+            newRandomColor();
+        }
+    };
+    var newRandomColor = function () {
+        color = HSLColor.random(p);
+    };
+    var drawRect = function (r, sizeVariation, depth) {
+        var opacityOffset = Number(sliderOpacity.value());
+        var depthOffset = Number(sliderDepth.value());
+        var relativeSizeVariation = sizeVariation / (depth + depthOffset);
+        p.fill(color.h, color.s, color.l, depth * 80 + opacityOffset);
+        p.rect(r.x, r.y, r.size + p.random(0, relativeSizeVariation), r.size + p.random(0, relativeSizeVariation));
+    };
+};
+new p5(sketch);
+function shuffle(array) {
+    var currentIndex = array.length, temporaryValue, randomIndex;
+    while (0 !== currentIndex) {
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex -= 1;
+        temporaryValue = array[currentIndex];
+        array[currentIndex] = array[randomIndex];
+        array[randomIndex] = temporaryValue;
+    }
+    return array;
 }
 //# sourceMappingURL=build.js.map

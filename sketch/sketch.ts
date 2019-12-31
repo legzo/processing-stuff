@@ -1,33 +1,117 @@
-let angle = 0;
-let squares = 10;
-let colors: p5.Color[];
+var sketch = (p: p5) => {
 
-function setup() {
-    createCanvas(windowWidth, windowHeight);
-    rectMode(CENTER);
-    colors = ColorHelper.getColorsArray(squares);
-}
+    let sliderJitter: p5.Element
+    let sliderSteps: p5.Element
+    let sliderOpacity: p5.Element
+    let sliderDepth: p5.Element
 
-function draw() {
+    let stepsValue = 85
 
-    background(51);
+    let previous: Array<Rectangle>
+    let rectangles: Array<Rectangle>
 
-    translate((width / 2), (height / 2));
-    angle = angle + 0.01;
-    rotate(angle);
+    let color: HSLColor
 
-    for (var i = 0; i < squares; i++) {
-        strokeWeight(2);
-        stroke(colors[i]);
-        noFill();
-        beginShape();
+    p.setup = () => {
 
-        let points = Shapes.star(0, 0, 10 * i, 20 * i, 5);
-        for (var x = 0; x < points.length; x++) {
-            var v = points[x]
-            vertex(v.x, v.y);
-        }
-        endShape(CLOSE);
+        p.rectMode(p.CENTER)
+
+        p.stroke(0)
+        p.strokeWeight(40)
+
+        p.colorMode(p.HSL, 100)
+
+        p.createCanvas(800, 800)
+
+        color = HSLColor.random(p)
+
+        sliderJitter = p.createSlider(0, 20, 7, 1)
+        sliderJitter.position(10, 10)
+        sliderJitter.style('width', '80px')
+
+        sliderSteps = p.createSlider(25, 100, stepsValue, 5)
+        sliderSteps.position(120, 10)
+        sliderSteps.style('width', '80px')
+
+        sliderOpacity = p.createSlider(0, 50, 17, 1)
+        sliderOpacity.position(230, 10)
+        sliderOpacity.style('width', '80px')
+
+        sliderDepth = p.createSlider(0, 1, 0.22, 0.01)
+        sliderDepth.position(340, 10)
+        sliderDepth.style('width', '80px')
+
+        rectangles = generateRandomSquares(p, p.width, p.height, stepsValue)
     }
 
+    p.draw = () => {
+        const newSteps = Number(sliderSteps.value())
+        const jitter = Number(sliderJitter.value())
+
+        if (newSteps !== stepsValue) {
+            rectangles = generateRandomSquares(p, p.width, p.height, newSteps)
+            stepsValue = newSteps
+        }
+        p.stroke(255, 80)
+        p.strokeWeight(4)
+
+        if (previous !== rectangles || jitter !== 0) {
+            p.clear()
+            p.background("#333")
+            rectangles.forEach((rect, index) => {
+                drawRect(rect, jitter, (index / rectangles.length))
+            })
+            previous = rectangles
+        }
+
+    }
+
+    p.keyPressed = () => {
+        console.log(p.key)
+
+        if (p.key === "i") {
+            const info = {
+                "jitter" : sliderJitter.value(),
+                "steps"  : sliderSteps.value(),
+                "opacity": sliderOpacity.value(),
+                "depth"  : sliderDepth.value()
+            }
+
+            console.log(info)
+            return
+        }
+
+        rectangles = generateRandomSquares(p, p.width, p.height, Number(sliderSteps.value()))
+
+        if (p.key === "r") {
+            newRandomColor()
+        }
+
+    }
+
+    let newRandomColor = () => {
+        color = HSLColor.random(p)
+    }
+
+    let drawRect = (
+        r: Rectangle,
+        sizeVariation: number,
+        depth: number
+    ) => {
+
+        const opacityOffset = Number(sliderOpacity.value())
+        const depthOffset = Number(sliderDepth.value())
+        const relativeSizeVariation = sizeVariation / (depth + depthOffset)
+
+        p.fill(color.h, color.s, color.l, depth * 80 + opacityOffset)
+
+        p.rect(
+            r.x,
+            r.y,
+            r.size + p.random(0, relativeSizeVariation),
+            r.size + p.random(0, relativeSizeVariation)
+        )
+    }
 }
+
+new p5(sketch)
