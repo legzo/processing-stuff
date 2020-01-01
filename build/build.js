@@ -46,23 +46,12 @@ var sketch = function (p) {
         p.colorMode(p.HSL, 100);
         p.createCanvas(800, 800);
         color = HSLColor.random(p);
-        sliderJitter = p.createSlider(0, 20, 7, 1);
-        sliderJitter.position(10, 10);
-        sliderJitter.style('width', '80px');
-        sliderSteps = p.createSlider(25, 100, stepsValue, 5);
-        sliderSteps.position(120, 10);
-        sliderSteps.style('width', '80px');
-        sliderOpacity = p.createSlider(0, 50, 17, 1);
-        sliderOpacity.position(230, 10);
-        sliderOpacity.style('width', '80px');
-        sliderDepth = p.createSlider(0, 1, 0.22, 0.01);
-        sliderDepth.position(340, 10);
-        sliderDepth.style('width', '80px');
+        initSliders();
         rectangles = generateRandomSquares(p, p.width, p.height, stepsValue);
     };
     p.draw = function () {
-        var newSteps = Number(sliderSteps.value());
-        var jitter = Number(sliderJitter.value());
+        var newSteps = params().steps;
+        var jitter = params().jitter;
         if (newSteps !== stepsValue) {
             rectangles = generateRandomSquares(p, p.width, p.height, newSteps);
             stepsValue = newSteps;
@@ -78,32 +67,46 @@ var sketch = function (p) {
             previous = rectangles;
         }
     };
+    var refreshSquares = function () {
+        color = HSLColor.random(p);
+        rectangles = generateRandomSquares(p, p.width, p.height, params().steps);
+    };
     p.keyPressed = function () {
         console.log(p.key);
         if (p.key === "i") {
-            var info = {
-                "jitter": sliderJitter.value(),
-                "steps": sliderSteps.value(),
-                "opacity": sliderOpacity.value(),
-                "depth": sliderDepth.value()
-            };
-            console.log(info);
+            console.log(params());
             return;
         }
-        rectangles = generateRandomSquares(p, p.width, p.height, Number(sliderSteps.value()));
-        if (p.key === "r") {
-            newRandomColor();
-        }
+        refreshSquares();
     };
-    var newRandomColor = function () {
-        color = HSLColor.random(p);
+    p.touchEnded = refreshSquares;
+    var params = function () {
+        return {
+            jitter: Number(sliderJitter.value()),
+            steps: Number(sliderSteps.value()),
+            opacity: Number(sliderOpacity.value()),
+            depth: Number(sliderDepth.value())
+        };
     };
     var drawRect = function (r, sizeVariation, depth) {
-        var opacityOffset = Number(sliderOpacity.value());
-        var depthOffset = Number(sliderDepth.value());
+        var depthOffset = params().depth;
         var relativeSizeVariation = sizeVariation / (depth + depthOffset);
-        p.fill(color.h, color.s, color.l, depth * 80 + opacityOffset);
+        p.fill(color.h, color.s, color.l, depth * 80 + params().opacity);
         p.rect(r.x, r.y, r.size + p.random(0, relativeSizeVariation), r.size + p.random(0, relativeSizeVariation));
+    };
+    var initSliders = function () {
+        sliderJitter = p.createSlider(0, 20, 7, 1);
+        sliderJitter.position(10, 10);
+        sliderJitter.style('width', '80px');
+        sliderSteps = p.createSlider(25, 100, stepsValue, 5);
+        sliderSteps.position(120, 10);
+        sliderSteps.style('width', '80px');
+        sliderOpacity = p.createSlider(0, 50, 17, 1);
+        sliderOpacity.position(230, 10);
+        sliderOpacity.style('width', '80px');
+        sliderDepth = p.createSlider(0, 1, 0.22, 0.01);
+        sliderDepth.position(340, 10);
+        sliderDepth.style('width', '80px');
     };
 };
 new p5(sketch);

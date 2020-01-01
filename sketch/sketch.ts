@@ -25,6 +25,85 @@ var sketch = (p: p5) => {
 
         color = HSLColor.random(p)
 
+        initSliders()
+
+        rectangles = generateRandomSquares(p, p.width, p.height, stepsValue)
+    }
+
+    p.draw = () => {
+        const newSteps = params().steps
+        const jitter = params().jitter
+
+        // refresh squares if steps param has changed
+        if (newSteps !== stepsValue) {
+            rectangles = generateRandomSquares(p, p.width, p.height, newSteps)
+            stepsValue = newSteps
+        }
+
+        p.stroke(255, 80)
+        p.strokeWeight(4)
+
+        // redraw only if rectangles are new or if jitter is active
+        if (previous !== rectangles || jitter !== 0) {
+            p.clear()
+            p.background("#333")
+
+            rectangles.forEach((rect, index) => {
+                drawRect(rect, jitter, (index / rectangles.length))
+            })
+            
+            previous = rectangles
+        }
+
+    }
+    
+    let refreshSquares = () => {
+        color = HSLColor.random(p)
+        rectangles = generateRandomSquares(p, p.width, p.height, params().steps)
+    }
+
+    p.keyPressed = () => {
+        console.log(p.key)
+        
+        if (p.key === "i") {
+            console.log(params())
+            return
+        }
+        
+        refreshSquares()
+    }
+    
+    p.touchEnded = refreshSquares
+
+    let params = () => {
+        return {
+            jitter : Number(sliderJitter.value()),
+            steps  : Number(sliderSteps.value()),
+            opacity: Number(sliderOpacity.value()),
+            depth  : Number(sliderDepth.value())
+        }
+    }
+
+    let drawRect = (
+        r: Rectangle,
+        sizeVariation: number,
+        depth: number
+    ) => {
+
+        const depthOffset = params().depth
+        const relativeSizeVariation = sizeVariation / (depth + depthOffset)
+
+        p.fill(color.h, color.s, color.l, depth * 80 + params().opacity)
+
+        p.rect(
+            r.x,
+            r.y,
+            r.size + p.random(0, relativeSizeVariation),
+            r.size + p.random(0, relativeSizeVariation)
+        )
+    }
+
+    let initSliders = () => {
         sliderJitter = p.createSlider(0, 20, 7, 1)
         sliderJitter.position(10, 10)
         sliderJitter.style('width', '80px')
@@ -40,78 +119,7 @@ var sketch = (p: p5) => {
         sliderDepth = p.createSlider(0, 1, 0.22, 0.01)
         sliderDepth.position(340, 10)
         sliderDepth.style('width', '80px')
-
-        rectangles = generateRandomSquares(p, p.width, p.height, stepsValue)
-    }
-
-    p.draw = () => {
-        const newSteps = Number(sliderSteps.value())
-        const jitter = Number(sliderJitter.value())
-
-        if (newSteps !== stepsValue) {
-            rectangles = generateRandomSquares(p, p.width, p.height, newSteps)
-            stepsValue = newSteps
-        }
-        p.stroke(255, 80)
-        p.strokeWeight(4)
-
-        if (previous !== rectangles || jitter !== 0) {
-            p.clear()
-            p.background("#333")
-            rectangles.forEach((rect, index) => {
-                drawRect(rect, jitter, (index / rectangles.length))
-            })
-            previous = rectangles
-        }
-
-    }
-
-    p.keyPressed = () => {
-        console.log(p.key)
-
-        if (p.key === "i") {
-            const info = {
-                "jitter" : sliderJitter.value(),
-                "steps"  : sliderSteps.value(),
-                "opacity": sliderOpacity.value(),
-                "depth"  : sliderDepth.value()
-            }
-
-            console.log(info)
-            return
-        }
-
-        rectangles = generateRandomSquares(p, p.width, p.height, Number(sliderSteps.value()))
-
-        if (p.key === "r") {
-            newRandomColor()
-        }
-
-    }
-
-    let newRandomColor = () => {
-        color = HSLColor.random(p)
-    }
-
-    let drawRect = (
-        r: Rectangle,
-        sizeVariation: number,
-        depth: number
-    ) => {
-
-        const opacityOffset = Number(sliderOpacity.value())
-        const depthOffset = Number(sliderDepth.value())
-        const relativeSizeVariation = sizeVariation / (depth + depthOffset)
-
-        p.fill(color.h, color.s, color.l, depth * 80 + opacityOffset)
-
-        p.rect(
-            r.x,
-            r.y,
-            r.size + p.random(0, relativeSizeVariation),
-            r.size + p.random(0, relativeSizeVariation)
-        )
-    }
+    } 
 }
 
 new p5(sketch)
