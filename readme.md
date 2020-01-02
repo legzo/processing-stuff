@@ -2,4 +2,4 @@
 
 (bootstrapped from https://github.com/Gaweph/p5-typescript-starter)
 
-![Result](./squares.png)
+![Result](./shapes.gif)

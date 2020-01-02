@@ -4,10 +4,11 @@ var ShapeType;
     ShapeType[ShapeType["Square"] = 1] = "Square";
 })(ShapeType || (ShapeType = {}));
 var MyShape = (function () {
-    function MyShape(x, y, size) {
+    function MyShape(x, y, size, color) {
         this.x = x;
         this.y = y;
         this.size = size;
+        this.color = color;
     }
     return MyShape;
 }());
@@ -17,12 +18,13 @@ var HSLColor = (function () {
         this.s = s;
         this.l = l;
     }
-    HSLColor.random = function (p) {
-        return new HSLColor(p.random(0, 100), p.random(40, 60), p.random(30, 70));
+    HSLColor.random = function (p, baseHue, jitter) {
+        var randomishHue = baseHue + p.random(-jitter / 2, jitter / 2);
+        return new HSLColor(randomishHue, p.random(10, 90), p.random(10, 90));
     };
     return HSLColor;
 }());
-var generateRandomSquares = function (p, width, height, steps) {
+var generateRandomShapes = function (p, width, height, steps, color, colorJitter) {
     var marginLower = width / 6;
     var marginUpper = width / 3;
     var margin = p.random(marginLower, marginUpper);
@@ -34,7 +36,7 @@ var generateRandomSquares = function (p, width, height, steps) {
         for (var y = margin; y < height - margin; y += steps) {
             var size = p.random(sizeLower, sizeUpper);
             var offset = p.random(-offsetRange, offsetRange);
-            rectangles.push(new MyShape(x + offset, y + offset, size));
+            rectangles.push(new MyShape(x + offset, y + offset, size, HSLColor.random(p, color, colorJitter)));
         }
     }
     return shuffle(rectangles);
@@ -43,35 +45,29 @@ var sketch = function (p) {
     var sliderSteps, sliderJitter, sliderOpacity, sliderDepth;
     var previousShapes;
     var shapes;
-    var color;
     var shapeType = ShapeType.Square;
-    var width, height, canvasSize, stepsValue;
+    var color, width, colorJitter = 25, canvasSize, stepsValue;
     p.setup = function () {
         p.rectMode(p.CENTER);
-        p.stroke(0);
-        p.strokeWeight(40);
-        p.colorMode(p.HSL, 100);
+        p.colorMode(p.HSB, 100);
         width = p.windowWidth;
         canvasSize = width * 0.90;
-        height = p.windowHeight;
         p.createCanvas(canvasSize, canvasSize);
-        color = HSLColor.random(p);
+        color = p.random(0, 100);
         stepsValue = canvasSize / 15;
         initSliders(width, canvasSize + 90);
-        shapes = generateRandomSquares(p, p.width, p.height, stepsValue);
+        shapes = generateRandomShapes(p, p.width, p.height, stepsValue, color, colorJitter);
     };
     p.draw = function () {
         var newSteps = params().steps;
         var jitter = params().jitter;
         if (newSteps !== stepsValue) {
-            shapes = generateRandomSquares(p, p.width, p.height, newSteps);
+            shapes = generateRandomShapes(p, p.width, p.height, newSteps, color, colorJitter);
             stepsValue = newSteps;
         }
-        p.stroke(255, 80);
-        p.strokeWeight(4);
+        p.strokeWeight(3);
         if (previousShapes !== shapes || jitter !== 0) {
             p.clear();
-            p.background("#333");
             shapes.forEach(function (rect, index) {
                 drawShape(rect, jitter, (index / shapes.length));
             });
@@ -79,8 +75,8 @@ var sketch = function (p) {
         }
     };
     var refreshShapes = function () {
-        color = HSLColor.random(p);
-        shapes = generateRandomSquares(p, p.width, p.height, params().steps);
+        color = p.random(0, 100);
+        shapes = generateRandomShapes(p, p.width, p.height, params().steps, color, colorJitter);
     };
     p.keyPressed = function () {
         console.log(p.key);
@@ -110,7 +106,7 @@ var sketch = function (p) {
     var drawShape = function (shape, sizeVariation, depth) {
         var depthOffset = params().depth;
         var relativeSizeVariation = sizeVariation / (depth + depthOffset);
-        p.fill(color.h, color.s, color.l, depth * 80 + params().opacity);
+        p.fill(shape.color.h, shape.color.s, shape.color.l, depth * 80 + params().opacity);
         if (shapeType == ShapeType.Circle) {
             p.circle(shape.x, shape.y, shape.size + p.random(0, relativeSizeVariation));
         }

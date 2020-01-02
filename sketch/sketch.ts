@@ -1,57 +1,57 @@
 var sketch = (p: p5) => {
 
-    let sliderSteps: p5.Element, sliderJitter: p5.Element, sliderOpacity: p5.Element, sliderDepth: p5.Element
+    let sliderSteps: p5.Element, 
+        sliderJitter: p5.Element, 
+        sliderOpacity: p5.Element, 
+        sliderDepth: p5.Element
 
     let previousShapes: Array<MyShape>
     let shapes: Array<MyShape>
 
-    let color: HSLColor
-
     let shapeType = ShapeType.Square
 
-    let width: number, height: number, canvasSize: number, stepsValue: number
+    let color: number, 
+        width: number, 
+        colorJitter: number = 25, 
+        canvasSize: number, 
+        stepsValue: number
 
     p.setup = () => {
 
+        // Modes
         p.rectMode(p.CENTER)
+        p.colorMode(p.HSB, 100)
 
-        p.stroke(0)
-        p.strokeWeight(40)
-
-        p.colorMode(p.HSL, 100)
-
+        // Canvas size
         width = p.windowWidth
         canvasSize = width * 0.90
-        height = p.windowHeight
 
         p.createCanvas(canvasSize, canvasSize)
 
-        color = HSLColor.random(p)
-
+        // Init some values
+        color = p.random(0, 100)
         stepsValue = canvasSize / 15
 
         initSliders(width, canvasSize + 90)
 
-        shapes = generateRandomSquares(p, p.width, p.height, stepsValue)
+        shapes = generateRandomShapes(p, p.width, p.height, stepsValue, color, colorJitter)
     }
 
     p.draw = () => {
         const newSteps = params().steps
         const jitter = params().jitter
 
-        // refresh squares if steps param has changed
+        // refresh shapes if steps param has changed
         if (newSteps !== stepsValue) {
-            shapes = generateRandomSquares(p, p.width, p.height, newSteps)
+            shapes = generateRandomShapes(p, p.width, p.height, newSteps, color, colorJitter)
             stepsValue = newSteps
         }
 
-        p.stroke(255, 80)
-        p.strokeWeight(4)
+        p.strokeWeight(3)
 
         // redraw only if rectangles are new or if jitter is active
         if (previousShapes !== shapes || jitter !== 0) {
             p.clear()
-            p.background("#333")
 
             shapes.forEach((rect, index) => {
                 drawShape(rect, jitter, (index / shapes.length))
@@ -63,8 +63,8 @@ var sketch = (p: p5) => {
     }
     
     let refreshShapes = () => {
-        color = HSLColor.random(p)
-        shapes = generateRandomSquares(p, p.width, p.height, params().steps)
+        color = p.random(0, 100)
+        shapes = generateRandomShapes(p, p.width, p.height, params().steps, color, colorJitter)
     }
 
     p.keyPressed = () => {
@@ -108,7 +108,7 @@ var sketch = (p: p5) => {
         const depthOffset = params().depth
         const relativeSizeVariation = sizeVariation / (depth + depthOffset)
 
-        p.fill(color.h, color.s, color.l, depth * 80 + params().opacity)
+        p.fill(shape.color.h, shape.color.s, shape.color.l, depth * 80 + params().opacity)
 
         if (shapeType == ShapeType.Circle) {
             p.circle(
