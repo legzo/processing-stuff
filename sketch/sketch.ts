@@ -2,10 +2,12 @@ var sketch = (p: p5) => {
 
     let sliderSteps: p5.Element, sliderJitter: p5.Element, sliderOpacity: p5.Element, sliderDepth: p5.Element
 
-    let previous: Array<Rectangle>
-    let rectangles: Array<Rectangle>
+    let previousShapes: Array<MyShape>
+    let shapes: Array<MyShape>
 
     let color: HSLColor
+
+    let shapeType = ShapeType.Square
 
     let width: number, height: number, canvasSize: number, stepsValue: number
 
@@ -30,7 +32,7 @@ var sketch = (p: p5) => {
 
         initSliders(width, canvasSize + 90)
 
-        rectangles = generateRandomSquares(p, p.width, p.height, stepsValue)
+        shapes = generateRandomSquares(p, p.width, p.height, stepsValue)
     }
 
     p.draw = () => {
@@ -39,7 +41,7 @@ var sketch = (p: p5) => {
 
         // refresh squares if steps param has changed
         if (newSteps !== stepsValue) {
-            rectangles = generateRandomSquares(p, p.width, p.height, newSteps)
+            shapes = generateRandomSquares(p, p.width, p.height, newSteps)
             stepsValue = newSteps
         }
 
@@ -47,22 +49,22 @@ var sketch = (p: p5) => {
         p.strokeWeight(4)
 
         // redraw only if rectangles are new or if jitter is active
-        if (previous !== rectangles || jitter !== 0) {
+        if (previousShapes !== shapes || jitter !== 0) {
             p.clear()
             p.background("#333")
 
-            rectangles.forEach((rect, index) => {
-                drawRect(rect, jitter, (index / rectangles.length))
+            shapes.forEach((rect, index) => {
+                drawShape(rect, jitter, (index / shapes.length))
             })
             
-            previous = rectangles
+            previousShapes = shapes
         }
 
     }
     
-    let refreshSquares = () => {
+    let refreshShapes = () => {
         color = HSLColor.random(p)
-        rectangles = generateRandomSquares(p, p.width, p.height, params().steps)
+        shapes = generateRandomSquares(p, p.width, p.height, params().steps)
     }
 
     p.keyPressed = () => {
@@ -72,11 +74,21 @@ var sketch = (p: p5) => {
             console.log(params())
             return
         }
+
+        if (p.key === "c") {
+            shapeType = ShapeType.Circle
+            console.log("Circles now !")
+        }
+
+        if (p.key === "s") {
+            shapeType = ShapeType.Square
+            console.log("Squares are ON !")
+        }
         
-        refreshSquares()
+        refreshShapes()
     }
     
-    p.mouseClicked = refreshSquares
+    p.mouseClicked = refreshShapes
 
     let params = () => {
         return {
@@ -87,8 +99,8 @@ var sketch = (p: p5) => {
         }
     }
 
-    let drawRect = (
-        r: Rectangle,
+    let drawShape = (
+        shape: MyShape,
         sizeVariation: number,
         depth: number
     ) => {
@@ -98,12 +110,22 @@ var sketch = (p: p5) => {
 
         p.fill(color.h, color.s, color.l, depth * 80 + params().opacity)
 
-        p.rect(
-            r.x,
-            r.y,
-            r.size + p.random(0, relativeSizeVariation),
-            r.size + p.random(0, relativeSizeVariation)
-        )
+        if (shapeType == ShapeType.Circle) {
+            p.circle(
+                shape.x,
+                shape.y,
+                shape.size + p.random(0, relativeSizeVariation)
+            )
+        }
+
+        if (shapeType == ShapeType.Square) {
+            p.square(
+                shape.x,
+                shape.y,
+                shape.size + p.random(0, relativeSizeVariation)
+            )
+        }
+        
     }
 
     let initSliders = (width: number, top: number) => {

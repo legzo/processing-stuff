@@ -1,10 +1,15 @@
-var Rectangle = (function () {
-    function Rectangle(x, y, size) {
+var ShapeType;
+(function (ShapeType) {
+    ShapeType[ShapeType["Circle"] = 0] = "Circle";
+    ShapeType[ShapeType["Square"] = 1] = "Square";
+})(ShapeType || (ShapeType = {}));
+var MyShape = (function () {
+    function MyShape(x, y, size) {
         this.x = x;
         this.y = y;
         this.size = size;
     }
-    return Rectangle;
+    return MyShape;
 }());
 var HSLColor = (function () {
     function HSLColor(h, s, l) {
@@ -29,16 +34,17 @@ var generateRandomSquares = function (p, width, height, steps) {
         for (var y = margin; y < height - margin; y += steps) {
             var size = p.random(sizeLower, sizeUpper);
             var offset = p.random(-offsetRange, offsetRange);
-            rectangles.push(new Rectangle(x + offset, y + offset, size));
+            rectangles.push(new MyShape(x + offset, y + offset, size));
         }
     }
     return shuffle(rectangles);
 };
 var sketch = function (p) {
     var sliderSteps, sliderJitter, sliderOpacity, sliderDepth;
-    var previous;
-    var rectangles;
+    var previousShapes;
+    var shapes;
     var color;
+    var shapeType = ShapeType.Square;
     var width, height, canvasSize, stepsValue;
     p.setup = function () {
         p.rectMode(p.CENTER);
@@ -52,29 +58,29 @@ var sketch = function (p) {
         color = HSLColor.random(p);
         stepsValue = canvasSize / 15;
         initSliders(width, canvasSize + 90);
-        rectangles = generateRandomSquares(p, p.width, p.height, stepsValue);
+        shapes = generateRandomSquares(p, p.width, p.height, stepsValue);
     };
     p.draw = function () {
         var newSteps = params().steps;
         var jitter = params().jitter;
         if (newSteps !== stepsValue) {
-            rectangles = generateRandomSquares(p, p.width, p.height, newSteps);
+            shapes = generateRandomSquares(p, p.width, p.height, newSteps);
             stepsValue = newSteps;
         }
         p.stroke(255, 80);
         p.strokeWeight(4);
-        if (previous !== rectangles || jitter !== 0) {
+        if (previousShapes !== shapes || jitter !== 0) {
             p.clear();
             p.background("#333");
-            rectangles.forEach(function (rect, index) {
-                drawRect(rect, jitter, (index / rectangles.length));
+            shapes.forEach(function (rect, index) {
+                drawShape(rect, jitter, (index / shapes.length));
             });
-            previous = rectangles;
+            previousShapes = shapes;
         }
     };
-    var refreshSquares = function () {
+    var refreshShapes = function () {
         color = HSLColor.random(p);
-        rectangles = generateRandomSquares(p, p.width, p.height, params().steps);
+        shapes = generateRandomSquares(p, p.width, p.height, params().steps);
     };
     p.keyPressed = function () {
         console.log(p.key);
@@ -82,9 +88,17 @@ var sketch = function (p) {
             console.log(params());
             return;
         }
-        refreshSquares();
+        if (p.key === "c") {
+            shapeType = ShapeType.Circle;
+            console.log("Circles now !");
+        }
+        if (p.key === "s") {
+            shapeType = ShapeType.Square;
+            console.log("Squares are ON !");
+        }
+        refreshShapes();
     };
-    p.mouseClicked = refreshSquares;
+    p.mouseClicked = refreshShapes;
     var params = function () {
         return {
             jitter: Number(sliderJitter.value()),
@@ -93,11 +107,16 @@ var sketch = function (p) {
             depth: Number(sliderDepth.value())
         };
     };
-    var drawRect = function (r, sizeVariation, depth) {
+    var drawShape = function (shape, sizeVariation, depth) {
         var depthOffset = params().depth;
         var relativeSizeVariation = sizeVariation / (depth + depthOffset);
         p.fill(color.h, color.s, color.l, depth * 80 + params().opacity);
-        p.rect(r.x, r.y, r.size + p.random(0, relativeSizeVariation), r.size + p.random(0, relativeSizeVariation));
+        if (shapeType == ShapeType.Circle) {
+            p.circle(shape.x, shape.y, shape.size + p.random(0, relativeSizeVariation));
+        }
+        if (shapeType == ShapeType.Square) {
+            p.square(shape.x, shape.y, shape.size + p.random(0, relativeSizeVariation));
+        }
     };
     var initSliders = function (width, top) {
         var sliderWidthNum = (width / 2 - 40);

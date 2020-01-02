@@ -1,4 +1,6 @@
-class Rectangle {
+enum ShapeType { Circle, Square }
+
+class MyShape {
     constructor(
         readonly x: number,
         readonly y: number,
@@ -19,14 +21,14 @@ class HSLColor {
 }
 
 var generateRandomSquares
-    = (p: p5, width: number, height: number, steps: number | null): Array<Rectangle> => {
+    = (p: p5, width: number, height: number, steps: number | null): Array<MyShape> => {
         
         let marginLower = width / 6
         let marginUpper = width / 3
         
         let margin = p.random(marginLower, marginUpper)
         let offsetRange = width / 20
-        let rectangles = Array<Rectangle>()
+        let rectangles = Array<MyShape>()
 
         let sizeLower = width / 20
         let sizeUpper = width / 4
@@ -35,7 +37,7 @@ var generateRandomSquares
             for (let y = margin; y < height - margin; y += steps) {
                 let size = p.random(sizeLower, sizeUpper)
                 let offset = p.random(-offsetRange, offsetRange)                
-                rectangles.push(new Rectangle(x + offset, y + offset, size))
+                rectangles.push(new MyShape(x + offset, y + offset, size))
             }
         }
 
