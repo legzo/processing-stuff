@@ -20,13 +20,20 @@ class HSLColor {
 
 var generateRandomSquares
     = (p: p5, width: number, height: number, steps: number | null): Array<Rectangle> => {
-        let margin = p.random(150, 250)
-        let offsetRange = 30
+        
+        let marginLower = width / 6
+        let marginUpper = width / 3
+        
+        let margin = p.random(marginLower, marginUpper)
+        let offsetRange = width / 20
         let rectangles = Array<Rectangle>()
+
+        let sizeLower = width / 20
+        let sizeUpper = width / 4
         
         for (let x = margin; x < width - margin; x += steps) {
             for (let y = margin; y < height - margin; y += steps) {
-                let size = p.random(20, 150)
+                let size = p.random(sizeLower, sizeUpper)
                 let offset = p.random(-offsetRange, offsetRange)                
                 rectangles.push(new Rectangle(x + offset, y + offset, size))
             }

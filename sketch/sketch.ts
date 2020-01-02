@@ -1,16 +1,13 @@
 var sketch = (p: p5) => {
 
-    let sliderJitter: p5.Element
-    let sliderSteps: p5.Element
-    let sliderOpacity: p5.Element
-    let sliderDepth: p5.Element
-
-    let stepsValue = 85
+    let sliderSteps: p5.Element, sliderJitter: p5.Element, sliderOpacity: p5.Element, sliderDepth: p5.Element
 
     let previous: Array<Rectangle>
     let rectangles: Array<Rectangle>
 
     let color: HSLColor
+
+    let width: number, height: number, canvasSize: number, stepsValue: number
 
     p.setup = () => {
 
@@ -21,11 +18,17 @@ var sketch = (p: p5) => {
 
         p.colorMode(p.HSL, 100)
 
-        p.createCanvas(800, 800)
+        width = p.windowWidth
+        canvasSize = width * 0.90
+        height = p.windowHeight
+
+        p.createCanvas(canvasSize, canvasSize)
 
         color = HSLColor.random(p)
 
-        initSliders()
+        stepsValue = canvasSize / 15
+
+        initSliders(width, canvasSize + 90)
 
         rectangles = generateRandomSquares(p, p.width, p.height, stepsValue)
     }
@@ -73,7 +76,7 @@ var sketch = (p: p5) => {
         refreshSquares()
     }
     
-    p.touchEnded = refreshSquares
+    p.mouseClicked = refreshSquares
 
     let params = () => {
         return {
@@ -103,22 +106,25 @@ var sketch = (p: p5) => {
         )
     }
 
-    let initSliders = () => {
+    let initSliders = (width: number, top: number) => {
+        const sliderWidthNum = (width / 2 - 40)
+        const sliderWidth = sliderWidthNum + 'px'
+
         sliderJitter = p.createSlider(0, 20, 7, 1)
-        sliderJitter.position(10, 10)
-        sliderJitter.style('width', '80px')
+        sliderJitter.position(20, top)
+        sliderJitter.style('width', sliderWidth)
 
         sliderSteps = p.createSlider(25, 100, stepsValue, 5)
-        sliderSteps.position(120, 10)
-        sliderSteps.style('width', '80px')
+        sliderSteps.position(20 + sliderWidthNum + 30, top)
+        sliderSteps.style('width', sliderWidth)
 
         sliderOpacity = p.createSlider(0, 50, 17, 1)
-        sliderOpacity.position(230, 10)
-        sliderOpacity.style('width', '80px')
+        sliderOpacity.position(20, top + 60)
+        sliderOpacity.style('width', sliderWidth)
 
         sliderDepth = p.createSlider(0, 1, 0.22, 0.01)
-        sliderDepth.position(340, 10)
-        sliderDepth.style('width', '80px')
+        sliderDepth.position(20 + sliderWidthNum + 30, top + 60)
+        sliderDepth.style('width', sliderWidth)
     } 
 }
 
