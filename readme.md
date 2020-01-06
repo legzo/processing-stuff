@@ -4,4 +4,4 @@ _(bootstrapped from https://github.com/Gaweph/p5-typescript-starter)_
 
 **Play with it :** http://processing-stuff.herokuapp.com/
 
-![Result](./shapes.gif)
+![Result](./shapes/shapes.gif)
