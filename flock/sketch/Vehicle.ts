@@ -8,11 +8,20 @@ class Vehicle {
         this.position = p.createVector(x, y);
         this.velocity = p.createVector(0, 0);
         this.acceleration = p.createVector(0, 0);
+        this.maxSpeed = p.random(4, 10)
     }
 
-    position: p5.Vector;
-    velocity: p5.Vector;
-    acceleration: p5.Vector;
+    maxSpeed: number
+    position: p5.Vector
+    velocity: p5.Vector
+    acceleration: p5.Vector
+
+    follow(flowField: FlowField) {
+        return flowField
+            .lookup(this.position)
+            .mult(this.maxSpeed)
+            .sub(this.velocity)
+    }
 
     applyForce(force: p5.Vector) {
         this.acceleration.add(force)
@@ -20,6 +29,7 @@ class Vehicle {
 
     update() {
         this.velocity.add(this.acceleration)
+        this.velocity.limit(this.maxSpeed)
         this.position.add(this.velocity);
         this.acceleration.mult(0)
     }

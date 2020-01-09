@@ -21,6 +21,10 @@ class FlowField {
     }
 
     init() {
+        // Reseed noise so we get a new flow field every time
+        // Need to get noise working
+        this.p.noiseSeed(Math.floor(this.p.random(10000)));
+
         this.vectors = this.make2dArray(this.columns)
 
         let xOffset = 0

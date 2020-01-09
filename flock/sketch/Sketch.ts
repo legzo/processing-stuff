@@ -3,49 +3,58 @@
 
 const sketch = (p: p5) => {
 
-    let vehicle: Vehicle
+    const numberOfVehicles = 50;
+    const width = 600
+    const height = 400
+
     let flowField: FlowField
+    let vehicles: Vehicle[] = []
+
+    let generateFleet = () => {
+        for (let i = 0; i < numberOfVehicles; i++) {
+            vehicles.push(new Vehicle(p, p.random(width - 10, width + 10), p.random(0, height), p.random(2, 6)))
+        }
+    }
 
     p.setup = () => {
         // Canvas size
-        p.createCanvas(600, 400)
-        vehicle = new Vehicle(p, 300, 200, 5)
-        flowField = new FlowField(p, 600, 400, 20)
+        p.createCanvas(width, height)
+        flowField = new FlowField(p, width, height, 20)
         flowField.init()
+
+        generateFleet();
+
         p.fill(255);
     }
 
-    let mousePosition = function() {
-        return p.createVector(p.mouseX, p.mouseY)
-    }
-
-    let attractionToMouse = function() {
-        return p5.Vector.sub(mousePosition(), vehicle.position)
-            .mult(0.1)
-            .mult(0)
-    }
-
-    let constraintByFlow = function() {
-        let flowForce = flowField.lookup(vehicle.position);
-        return flowForce.mult(5)
+    let constraintByFlow = (vehicle: Vehicle) => {
+        return flowField.lookup(vehicle.position)
+            .mult(5)
     }
 
     p.draw = () => {
         p.background("#333")
-        let force = attractionToMouse()
-                    .add(constraintByFlow())
-                    .sub(vehicle.velocity);
 
-        vehicle.applyForce(force)
-        vehicle.update()
-        vehicle.display()
+        vehicles.forEach((vehicle) => {
+            let force = vehicle.follow(flowField)
+            vehicle.applyForce(force)
+            vehicle.update()
+            vehicle.display()
+        })
+
         flowField.display()
     }
 
     p.mouseClicked = () => {
-        console.log(`Force : ${attractionToMouse()}`)
-        vehicle.position = p.createVector(300, 200)
-        vehicle.velocity = p.createVector(0, 0)
+        flowField.init()
+        generateFleet()
+    }
+
+    p.keyPressed = () => {
+        console.log(p.key)
+        if (p.key === 'r') {
+            flowField.init()
+        }
     }
 
 }
