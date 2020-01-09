@@ -19,7 +19,7 @@ class Vehicle {
     }
 
     update() {
-        this.velocity.add(this.acceleration);
+        this.velocity.add(this.acceleration)
         this.position.add(this.velocity);
         this.acceleration.mult(0)
     }
