@@ -1,9 +1,26 @@
 const sketch = (p: p5) => {
 
-    let sliderSteps: p5.Element, 
-        sliderJitter: p5.Element, 
-        sliderOpacity: p5.Element, 
-        sliderDepth: p5.Element;
+    let paramz = {
+        steps: 5,
+        stepsMin: 25,
+        stepsMax: 100,
+
+        jitter: 7,
+        jitterMin: 0,
+        jitterMax: 20,
+
+        opacity: 15,
+        opacityMin: 0,
+        opacityMax: 50,
+
+        depth: 0.22,
+        depthMin: 0,
+        depthMax: 1,
+        depthStep: 0.02,
+    }
+
+    let gui: any;
+    let guiVisible = true
 
     let previousShapes: Array<MyShape>;
     let shapes: Array<MyShape>;
@@ -13,8 +30,7 @@ const sketch = (p: p5) => {
     let color: number, 
         width: number, 
         colorJitter: number = 25, 
-        canvasSize: number, 
-        stepsValue: number;
+        canvasSize: number;
 
     p.setup = () => {
 
@@ -24,27 +40,30 @@ const sketch = (p: p5) => {
 
         // Canvas size
         width = p.windowWidth;
-        canvasSize = width * 0.90;
+        canvasSize = width * 0.80;
 
         p.createCanvas(canvasSize, canvasSize);
 
         // Init some values
         color = p.random(0, 100);
-        stepsValue = canvasSize / 15;
+        paramz.steps = canvasSize / 15;
 
-        initSliders(width, canvasSize + 90);
 
-        shapes = generateRandomShapes(p, p.width, p.height, stepsValue, color, colorJitter)
+        // @ts-ignore
+        gui = p.createGui(p);
+        gui.addObject(paramz);
+
+        shapes = generateRandomShapes(p, p.width, p.height, paramz.steps, color, colorJitter)
     };
 
     p.draw = () => {
-        const newSteps = params().steps;
-        const jitter = params().jitter;
+        const newSteps = paramz.steps;
+        const jitter = paramz.jitter;
 
         // refresh shapes if steps param has changed
-        if (newSteps !== stepsValue) {
+        if (newSteps !== paramz.steps) {
             shapes = generateRandomShapes(p, p.width, p.height, newSteps, color, colorJitter);
-            stepsValue = newSteps
+            paramz.steps = newSteps
         }
 
         p.strokeWeight(3);
@@ -64,14 +83,14 @@ const sketch = (p: p5) => {
     
     let refreshShapes = () => {
         color = p.random(0, 100);
-        shapes = generateRandomShapes(p, p.width, p.height, params().steps, color, colorJitter)
+        shapes = generateRandomShapes(p, p.width, p.height, paramz.steps, color, colorJitter)
     };
 
     p.keyPressed = () => {
         console.log(p.key);
         
         if (p.key === "i") {
-            console.log(params());
+            console.log(paramz);
             return
         }
 
@@ -84,20 +103,16 @@ const sketch = (p: p5) => {
             shapeType = ShapeType.Square;
             console.log("Squares are ON !")
         }
-        
+
+        if (p.key === 'p') {
+            guiVisible = !guiVisible;
+            if (guiVisible) gui.show(); else gui.hide();
+        }
+
         refreshShapes()
     };
     
     p.mouseClicked = refreshShapes;
-
-    let params = () => {
-        return {
-            jitter : Number(sliderJitter.value()),
-            steps  : Number(sliderSteps.value()),
-            opacity: Number(sliderOpacity.value()),
-            depth  : Number(sliderDepth.value())
-        }
-    };
 
     let drawShape = (
         shape: MyShape,
@@ -105,10 +120,10 @@ const sketch = (p: p5) => {
         depth: number
     ) => {
 
-        const depthOffset = params().depth;
+        const depthOffset = paramz.depth;
         const relativeSizeVariation = sizeVariation / (depth + depthOffset);
 
-        p.fill(shape.color.h, shape.color.s, shape.color.l, depth * 80 + params().opacity);
+        p.fill(shape.color.h, shape.color.s, shape.color.l, depth * 80 + paramz.opacity);
 
         if (shapeType == ShapeType.Circle) {
             p.circle(
@@ -128,26 +143,6 @@ const sketch = (p: p5) => {
         
     };
 
-    let initSliders = (width: number, top: number) => {
-        const sliderWidthNum = (width / 2 - 40);
-        const sliderWidth = sliderWidthNum + 'px';
-
-        sliderJitter = p.createSlider(0, 20, 7, 1);
-        sliderJitter.position(20, top);
-        sliderJitter.style('width', sliderWidth);
-
-        sliderSteps = p.createSlider(25, 100, stepsValue, 5);
-        sliderSteps.position(20 + sliderWidthNum + 30, top);
-        sliderSteps.style('width', sliderWidth);
-
-        sliderOpacity = p.createSlider(0, 50, 17, 1);
-        sliderOpacity.position(20, top + 60);
-        sliderOpacity.style('width', sliderWidth);
-
-        sliderDepth = p.createSlider(0, 1, 0.22, 0.01);
-        sliderDepth.position(20 + sliderWidthNum + 30, top + 60);
-        sliderDepth.style('width', sliderWidth)
-    } 
 };
 
 new p5(sketch);
