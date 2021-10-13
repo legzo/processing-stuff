@@ -1,31 +1,36 @@
 const makeSketch = () => {
 
     const sketch = (p: p5) => {
-        const canvasSize = 400
         let params = {
-            radius: 50,
+            definition: 10,
         }
         let gui: any
         let guiVisible = true
+
+        const desiredSize = 400
 
         p.setup = () => {
             // Modes
 
             p.colorMode(p.HSB, 100)
             // @ts-ignore
-            gui = p.createGui(p).setPosition(canvasSize + 80, 20)
+            gui = p.createGui(p).setPosition(20, 460)
 
             gui.addObject(params)
-            p.createCanvas(canvasSize, canvasSize)
+            p.noLoop()
         }
 
         p.draw = () => {
+            let numberOfColumns = Math.floor(desiredSize / params.definition)
+            let canvasSize = numberOfColumns * params.definition
+            p.createCanvas(canvasSize, canvasSize)
+            p.strokeWeight(2)
             p.background(220)
-            let resolution = canvasSize / params.radius
+            let resolution = params.definition
 
-            for (let x = resolution; x <= canvasSize - resolution; x += resolution) {
-                for (let y = resolution; y <= canvasSize - resolution; y += resolution) {
-                    p.circle(x, y, resolution)
+            for (let x = 0; x <= canvasSize; x += resolution) {
+                for (let y = 0; y <= canvasSize; y += resolution) {
+                    p.circle(x + resolution / 2, y + resolution / 2, resolution)
                 }
             }
         }
