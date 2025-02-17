@@ -4,12 +4,13 @@
   "description": "Project to quickly get something working in [p5.js](https://p5js.org/) and [typescript](https://www.typescriptlang.org/)",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "compile-ashlight": "tsc -p ashlight/tsconfig.json --watch",
     "compile-bootstrap": "tsc -p bootstrap/tsconfig.json --watch",
     "compile-circular": "tsc -p circular/tsconfig.json --watch",
     "compile-game-of-life": "tsc -p game-of-life/tsconfig.json --watch",
     "compile-shapes": "tsc -p shapes/tsconfig.json --watch",
     "compile-flock": "tsc -p flock/tsconfig.json --watch",
-    "compile": "run-p compile-shapes compile-flock compile-game-of-life compile-circular compile-bootstrap",
+    "compile": "run-p compile-ashlight compile-shapes compile-flock compile-game-of-life compile-circular compile-bootstrap",
     "serve": "http-server",
     "browser-sync": "browser-sync start --server -w --no-open",
     "start": "run-p compile serve",
@@ -17,14 +18,14 @@
   },
   "homepage": "https://github.com/Gaweph/p5-typescript-starter#readme",
   "devDependencies": {
-    "@types/p5": "^0.9.0",
+    "@types/p5": "^1.7.6",
     "browser-sync": "^2.26.7",
     "npm-run-all": "^4.1.5",
     "prettier": "1.19.1",
     "typescript": "^3.6.3"
   },
   "dependencies": {
-    "@types/p5": "^0.9.0",
+    "@types/p5": "^1.7.6",
     "http-server": "^0.12.0",
     "npm-run-all": "^4.1.5",
     "typescript": "^3.6.3"
